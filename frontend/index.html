@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowSign - Traducteur LSF</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="main-interface">
+            <h1>FlowSign</h1>
+            <p>Convertisseur intelligent Français ➔ LSF</p>
+            
+            <textarea id="champTexte" placeholder="Tape ta phrase ici (ex: Hier j'ai couru avec ma mère)..."></textarea>
+            <button id="btnTraduire">Traduire maintenant</button>
+
+            <div id="resultat">
+                La séquence LSF apparaîtra ici...
+            </div>
+        </div>
+
+        <div class="video-placeholder" id="canvas-3d">
+            </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
