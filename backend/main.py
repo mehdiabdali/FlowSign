@@ -25,8 +25,8 @@ def api_traduire():
     chemins_animations = []
     mots_sans_animation = []
     for mot in mots_lsf:
-        # On cherche le document où le gloss correspond exactement
-        signe = collection.find_one({"gloss": mot})
+        # On cherche le document où le lemme correspond exactement
+        signe = collection.find_one({"lemme": mot})
         if signe:
             chemins_animations.append(signe['fichier_3d'])
         else:
@@ -46,12 +46,12 @@ def obtenir_dictionnaire():
         
     try:
         # On demande à MongoDB de nous donner tous les signes
-        # Le {"_id": 0, "gloss": 1} signifie : ne me renvoie pas l'ID technique, juste le gloss
-        # Le .sort("gloss", 1) permet de trier par ordre alphabétique (A-Z)
-        signes = list(collection.find({}, {"_id": 0, "gloss": 1}).sort("gloss", 1))
+        # Le {"_id": 0, "lemme": 1} signifie : ne me renvoie pas l'ID technique, juste le lemme
+        # Le .sort("lemme", 1) permet de trier par ordre alphabétique (A-Z)
+        signes = list(collection.find({}, {"_id": 0, "lemme": 1}).sort("lemme", 1))
         
         # On extrait juste les textes pour faire une liste simple
-        liste_mots = [signe["gloss"] for signe in signes]
+        liste_mots = [signe["lemme"] for signe in signes]
         
         return jsonify({"mots": liste_mots}), 200
     except Exception as e:

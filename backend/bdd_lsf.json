@@ -1,18 +1,18 @@
 [
     {
-        "gloss": "BONJOUR",
+        "lemme": "BONJOUR",
         "fichier_3d": "static/animations/BONJOUR.glb"
     },
     {
-        "gloss": "JE",
+        "lemme": "JE",
         "fichier_3d": "static/animations/JE.glb"
     },
     {
-        "gloss": "MERCI",
+        "lemme": "MERCI",
         "fichier_3d": "static/animations/MERCI.glb"
     },
     {
-        "gloss": "NON",
+        "lemme": "NON",
         "fichier_3d": "static/animations/NON.glb"
     }
 ]

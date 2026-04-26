@@ -1,3 +1,12 @@
+"""
+parcout le dossier static/animation et crée un fichier json avec le chemin de chaque signe 
+et son lemme afin d'automatiser la création de la bdd
+"""
+
+
+
+
+
 import json
 from pathlib import Path
 
@@ -13,24 +22,24 @@ def synchroniser_bdd_depuis_fichiers(dossier_animations, fichier_sortie_json):
     fichiers_glb = list(chemin_dossier.glob("*.glb"))
     
     for fichier in fichiers_glb:
-        # stem récupère le nom sans l'extension (ex: 'bonjour' pour 'bonjour.glb')
+        # stem récupère le nom sans l'extension
         nom_brut = fichier.stem
 
         if nom_brut.lower() == "avatar_base":
             continue
         
-        # On crée le gloss en majuscules (ex: 'BONJOUR')
+        # On crée le lemme en majuscules (ex: 'BONJOUR')
         # On remplace aussi les espaces ou tirets par des underscores par sécurité
-        gloss = nom_brut.upper().replace(" ", "_").replace("-", "_")
+        lemme = nom_brut.upper().replace(" ", "_").replace("-", "_")
         
         # Construction de l'entrée pour le JSON
         entree = {
-            "gloss": gloss,
+            "lemme": lemme,
             "fichier_3d": f"static/animations/{fichier.name}"
         }
         
         base_de_donnees.append(entree)
-        print("-", gloss)
+        print("-", lemme)
 
     # Sauvegarde finale
     with open(fichier_sortie_json, 'w', encoding='utf-8') as f:
