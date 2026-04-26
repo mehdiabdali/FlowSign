@@ -1,58 +1,46 @@
+import json
 from pymongo import MongoClient
 
-def remplir_base():
-    # 1. On se connecte à ton container Docker MongoDB
-    client = MongoClient('mongodb://localhost:27017/')
-    
-    # 2. On sélectionne ta base de données (elle se créera toute seule)
-    db = client['flowsign_db']
-    collection = db['signes']
+def remplir_base_depuis_json(chemin_fichier_json):
+    # 1. Connexion à MongoDB
+    try:
+        client = MongoClient('mongodb://localhost:27017/')
+        db = client['flowsign_db']
+        collection = db['signes']
+    except Exception as e:
+        print(f"Erreur de connexion à MongoDB : {e}")
+        return
 
-    # 3. On vide la base avant de la remplir 
-    # (ça évite d'avoir les mots en double si tu relances le script pour tester)
+    # 2. Ouverture et lecture du fichier JSON
+    print(f"Lecture du fichier : {chemin_fichier_json}...")
+    try:
+        with open(chemin_fichier_json, 'r', encoding='utf-8') as fichier:
+            # json.load transforme le texte du fichier en vraie liste Python
+            donnees_a_inserer = json.load(fichier)
+    except FileNotFoundError:
+        print(f"Erreur : Le fichier {chemin_fichier_json} est introuvable.")
+        return
+    except json.JSONDecodeError:
+        print(f"Erreur : Le fichier {chemin_fichier_json} est mal formaté (ce n'est pas du JSON valide).")
+        return
+
+    # Vérification de sécurité
+    if not donnees_a_inserer:
+        print("Le fichier JSON est vide. Rien n'a été modifié dans la base.")
+        return
+
+    # 3. Nettoyage de l'ancienne collection
+    print("Nettoyage de l'ancienne base de données...")
     collection.delete_many({})
 
-    # 4. Voici tes données : on fait le lien entre le mot et ton fichier 3D
-    donnees_de_depart = [
-        {
-            "mot": "test1",
-            "gloss": "MON_TEST",
-            "fichier_3d": "static/animations/MON_TEST.glb",
-            "categorie": "Test"
-        },
-        
-        {
-            "mot": "merci",
-            "gloss": "MERCI",
-            "fichier_3d": "static/animations/MERCI.glb",
-            "categorie": "Test"
-        },
+    # 4. Insertion des nouvelles données
+    print(f"Insertion de {len(donnees_a_inserer)} signes dans MongoDB...")
+    resultat = collection.insert_many(donnees_a_inserer)
 
-        {
-            "mot": "NON",
-            "gloss": "NON",
-            "fichier_3d": "static/animations/NON.glb",
-            "categorie": "Test"
-        },
+    print(f"Succès ! La base a été mise à jour avec {len(resultat.inserted_ids)} signes.")
 
-        {
-            "mot": "bonjour",
-            "gloss": "BONJOUR",
-            "fichier_3d": "static/animations/BONJOUR.glb",
-            "categorie": "salutation"
-        },
-        {
-            "mot": "JE",
-            "gloss": "JE",
-            "fichier_3d": "static/animations/JE.glb",
-            "categorie": "test"
-        }
-    
-    ]
-
-    # 5. On insère tout d'un coup
-    resultat = collection.insert_many(donnees_de_depart)
-    print(f"Succès ! La base est remplie avec {len(resultat.inserted_ids)} signes.")
-
+# --- EXÉCUTION ---
 if __name__ == "__main__":
-    remplir_base()
+    fichier_source_json = "bdd_lsf.json" 
+    
+    remplir_base_depuis_json(fichier_source_json)

@@ -38,6 +38,26 @@ def api_traduire():
                     "mots_sans_animation": mots_sans_animation,
                     "traduction_complete": traduction_complete}), 200
 
+
+@app.route('/api/dictionnaire', methods=['GET', 'OPTIONS'])
+def obtenir_dictionnaire():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
+    try:
+        # On demande à MongoDB de nous donner tous les signes
+        # Le {"_id": 0, "gloss": 1} signifie : ne me renvoie pas l'ID technique, juste le gloss
+        # Le .sort("gloss", 1) permet de trier par ordre alphabétique (A-Z)
+        signes = list(collection.find({}, {"_id": 0, "gloss": 1}).sort("gloss", 1))
+        
+        # On extrait juste les textes pour faire une liste simple
+        liste_mots = [signe["gloss"] for signe in signes]
+        
+        return jsonify({"mots": liste_mots}), 200
+    except Exception as e:
+        print("Erreur dictionnaire :", e)
+        return jsonify({"erreur": "Impossible de charger le dictionnaire"}), 500
+
 if __name__ == '__main__':
     print("Serveur API FlowSign démarré sur http://127.0.0.1:5000")
     app.run(debug=True, port=5000)

@@ -130,3 +130,53 @@ champTexte.addEventListener('keypress', (e) => {
 });
 
 initScene();
+
+
+const btnDico = document.getElementById('btnDico');
+const zoneDico = document.getElementById('zoneDico');
+
+async function chargerDictionnaire() {
+    // Si le panneau est déjà ouvert, on le ferme simplement
+    if (zoneDico.style.display === 'block') {
+        zoneDico.style.display = 'none';
+        btnDico.textContent = "Voir les mots disponibles";
+        return;
+    }
+
+    // On prépare l'affichage
+    zoneDico.innerHTML = '<em>Chargement du dictionnaire...</em>';
+    zoneDico.style.display = 'block';
+    btnDico.textContent = "Cacher le dictionnaire";
+
+    try {
+        const reponse = await fetch('http://127.0.0.1:5000/api/dictionnaire');
+        
+        if (!reponse.ok) throw new Error("Erreur serveur");
+        
+        const data = await reponse.json();
+
+        if (data.mots && data.mots.length > 0) {
+            // On transforme la liste de mots en éléments HTML
+            const htmlMots = data.mots.map(gloss => {
+                // Petit formatage : on remplace les _ par des espaces et on met en minuscules
+                // ex: "POMME_DE_TERRE" devient "pomme de terre"
+                const motLisible = gloss.toLowerCase().replace(/_/g, ' ');
+                
+                return `<span style="display: inline-block; background-color: #e0e0e0; color: #333; padding: 5px 12px; margin: 4px; border-radius: 15px; font-size: 14px;">
+                    ${motLisible}
+                </span>`;
+            });
+
+            // On injecte tout ça d'un coup dans la div
+            zoneDico.innerHTML = htmlMots.join('');
+        } else {
+            zoneDico.innerHTML = "<em>Aucun mot n'est encore enregistré dans la base de données.</em>";
+        }
+    } catch (error) {
+        console.error("Erreur dictionnaire :", error);
+        zoneDico.innerHTML = "<span style='color:red;'>Erreur : Impossible de joindre le serveur.</span>";
+    }
+}
+
+// On attache la fonction au clic sur le bouton
+btnDico.addEventListener('click', chargerDictionnaire);
