@@ -157,10 +157,10 @@ async function chargerDictionnaire() {
 
         if (data.mots && data.mots.length > 0) {
             // On transforme la liste de mots en éléments HTML
-            const htmlMots = data.mots.map(gloss => {
+            const htmlMots = data.mots.map(lemme => {
                 // Petit formatage : on remplace les _ par des espaces et on met en minuscules
                 // ex: "POMME_DE_TERRE" devient "pomme de terre"
-                const motLisible = gloss.toLowerCase().replace(/_/g, ' ');
+                const motLisible = lemme.toLowerCase().replace(/_/g, ' ');
                 
                 return `<span style="display: inline-block; background-color: #e0e0e0; color: #333; padding: 5px 12px; margin: 4px; border-radius: 15px; font-size: 14px;">
                     ${motLisible}

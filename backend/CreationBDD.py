@@ -36,6 +36,7 @@ def synchroniser_bdd_depuis_fichiers(dossier_animations, fichier_sortie_json):
         entree = {
             "lemme": lemme,
             "fichier_3d": f"static/animations/{fichier.name}"
+            
         }
         
         base_de_donnees.append(entree)

@@ -1,13 +1,19 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 from trad import traduire_vers_lsf
 
+
+
+
 app = Flask(__name__)
 CORS(app)
 
 # 1. On prépare la connexion à MongoDB
-client = MongoClient('mongodb://localhost:27017/')
+load_dotenv()
+client = MongoClient(os.getenv("MONGO_URI"))
 db = client['flowsign_db']
 collection = db['signes']
 
