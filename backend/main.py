@@ -2,6 +2,35 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 from trad import traduire_vers_lsf
+from recognize import reconnaitre_signe
+import tempfile, os
+
+
+
+def api_reconnaitre():
+    if 'video' not in request.files:
+        return jsonify({"erreur": "Vidéo manquante"}), 400
+
+    video = request.files['video']
+
+    # Sauvegarde temporaire
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
+        video.save(tmp.name)
+        chemin_tmp = tmp.name
+
+    lemme, score = reconnaitre_signe(chemin_tmp)
+    os.unlink(chemin_tmp)  # Nettoyage
+
+    if lemme is None:
+        return jsonify({"erreur": "Signe non reconnu", "score": score}), 404
+
+    # Chercher le GLB correspondant
+    signe = collection.find_one({"lemme": lemme})
+    return jsonify({
+        "lemme": lemme,
+        "score": score,
+        "fichier_3d": signe['fichier_3d'] if signe else None
+    }), 200
 
 app = Flask(__name__)
 CORS(app)
