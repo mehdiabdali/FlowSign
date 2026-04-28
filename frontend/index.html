@@ -32,11 +32,16 @@
 
         <div class="panneau-dictionnaire" style="margin-top: 20px;">
     <button id="btnDico" style="padding: 10px; cursor: pointer;">
-         Voir les mots disponibles
+        Voir les mots disponibles
     </button>
     
-    <div id="zoneDico" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; background-color: #f9f9f9; border-radius: 5px;">
-        </div>
+    <div id="zoneDico" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #ccc; background-color: #f9f9f9; border-radius: 5px;">
+        
+        <input type="text" id="rechercheDico" placeholder="Chercher un signe..." style="width: 100%; padding: 8px; margin-bottom: 15px; box-sizing: border-box; border-radius: 4px; border: 1px solid #aaa;">
+        
+        <div id="conteneurMots" style="max-height: 200px; overflow-y: auto;">
+            </div>
+    </div>
 </div>
 
         <div class="video-placeholder" id="canvas-3d">
