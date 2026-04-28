@@ -42,19 +42,26 @@ function initScene() {
 }
 
 /* APPLICATION D'UNE ANIMATION EXTERNE */
-function appliquerAnimation(cheminFichier) {
+function appliquerAnimationSequence(fichiers, index = 0) {
     if (!avatar || !mixer) return;
+    if (index >= fichiers.length) return; // fin de la séquence
 
-    loader.load(cheminFichier, (gltf) => {
+    loader.load(fichiers[index], (gltf) => {
         const clip = gltf.animations[0];
 
         if (clip) {
-            mixer.stopAllAction(); 
-            
+            mixer.stopAllAction();
+
             const action = mixer.clipAction(clip, avatar);
             action.setLoop(THREE.LoopOnce);
             action.clampWhenFinished = true;
             action.play();
+
+            // Quand l'animation est terminée → passe à la suivante
+            mixer.addEventListener('finished', function passerSuivant() {
+                mixer.removeEventListener('finished', passerSuivant); // évite les doublons
+                appliquerAnimationSequence(fichiers, index + 1); // signe suivant
+            });
         }
     }, undefined, (error) => console.error("Erreur chargement animation :", error));
 }
@@ -98,7 +105,7 @@ async function executerTraduction() {
                 zoneResultat.innerHTML = html;
                 
                 if (data.fichiers_glb && data.fichiers_glb.length > 0) {
-                    appliquerAnimation(data.fichiers_glb[0]);
+                    appliquerAnimationSequence(data.fichiers_glb);
                 }
             }
         } else {

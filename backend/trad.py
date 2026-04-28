@@ -47,7 +47,7 @@ def traduire_vers_lsf(texte):
                     if lemme not in ["DEMAIN", "HIER"]: autres.append(lemme)
 
     phrase = []
-    if temps_global: phrase.append(temps_global)
+    if temps_global: phrase.append(f"({temps_global})")
     phrase += sujets + objets + autres + verbes + negations
     
     return phrase
