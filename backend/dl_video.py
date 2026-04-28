@@ -34,5 +34,6 @@ def telecharger_video_elix(mot, dossier_sortie="/Users/gaspardc/Downloads/"):
     print(f"💾 Vidéo sauvegardée : {out_path}")
     return out_path
 
-# telecharger_video_elix("merci")
-telecharger_video_elix("bonjour", dossier_sortie="C:\\Users\\Paul-Malo\\Downloads")
+dossier = "/home/useradd/videos_flowsign" 
+
+telecharger_video_elix("bonjour", dossier_sortie=dossier)
