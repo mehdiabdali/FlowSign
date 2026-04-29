@@ -18,9 +18,21 @@
 <body>
 
     <div class="container">
+        
         <div class="main-interface">
-            <h1>FlowSign</h1>
-            <p>Convertisseur intelligent Français ➔ LSF</p>
+            
+            <div style="display: flex; align-items: center; gap: 15px; justify-content: flex-start; margin-bottom: 5px;">
+                <h1 style="margin: 0;">FlowSign</h1>
+                
+                <div class="info-container">
+                    <span class="info-icone">i</span>
+                    <div class="info-texte">
+                        Tape ta phrase en français classique. Le moteur va l'analyser, isoler les mots importants, les remettre dans l'ordre de la syntaxe LSF (Temps + Sujet + Objet + Verbe) et préparer l'animation 3D correspondante.
+                    </div>
+                </div>
+            </div>
+            
+            <p style="margin-top: 0; margin-bottom: 20px;">Convertisseur intelligent Français ➔ LSF</p>
             
             <textarea id="champTexte" placeholder="Tape ta phrase ici (ex: Hier j'ai couru avec ma mère)..."></textarea>
             <button id="btnTraduire">Traduire maintenant</button>
@@ -28,24 +40,38 @@
             <div id="resultat">
                 La séquence LSF apparaîtra ici...
             </div>
+            
         </div>
 
-        <div class="panneau-dictionnaire" style="margin-top: 20px;">
-    <button id="btnDico" style="padding: 10px; cursor: pointer;">
-        Voir les mots disponibles
-    </button>
+        <div class="panneau-dictionnaire">
+            <button id="btnDico" style="padding: 10px; cursor: pointer;">
+                Voir les mots disponibles
+            </button>
     
-    <div id="zoneDico" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #ccc; background-color: #f9f9f9; border-radius: 5px;">
-        
-        <input type="text" id="rechercheDico" placeholder="Chercher un signe..." style="width: 100%; padding: 8px; margin-bottom: 15px; box-sizing: border-box; border-radius: 4px; border: 1px solid #aaa;">
-        
-        <div id="conteneurMots" style="max-height: 200px; overflow-y: auto;">
+            <div id="zoneDico" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #ccc; background-color: #f9f9f9; border-radius: 5px;">
+                <input type="text" id="rechercheDico" placeholder="Chercher un signe..." style="width: 100%; padding: 8px; margin-bottom: 15px; box-sizing: border-box; border-radius: 4px; border: 1px solid #aaa;">
+                <div id="conteneurMots" style="max-height: 200px; overflow-y: auto;"></div>
             </div>
-    </div>
-</div>
+        </div>
 
-        <div class="video-placeholder" id="canvas-3d">
-            </div>
+        <div class="zone-affichage-3d">
+            <div class="video-placeholder" id="canvas-3d"></div>
+            
+            <div id="controles-lecture" style="display: none; justify-content: center; gap: 10px; margin-top: 15px; align-items: center;">
+    <button id="btnPlay">▶ Lancer</button>
+    <button id="btnPause">⏸ Pause</button>
+    <button id="btnRestart">🔄 Recommencer</button>
+    
+    <select id="selectVitesse" style="padding: 0.65rem 1rem; border-radius: 10px; border: 1px solid var(--bordure); background-color: white; color: var(--texte-principal); cursor: pointer; font-size: 0.95rem; outline: none; margin-left: 10px;">
+        <option value="0.5">0.5x (Lent)</option>
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1x (Normal)</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x (Rapide)</option>
+    </select>
+</div>
+        </div>
+
     </div>
 
     <script type="module" src="script.js"></script>
