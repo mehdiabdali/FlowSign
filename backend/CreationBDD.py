@@ -1,5 +1,6 @@
 """
-parcout le dossier static/animation et crée un fichier json avec le chemin de chaque signe 
+auteur: Mehdi ABD ALI
+Parcout le dossier static/animation et crée un fichier json avec le chemin de chaque signe 
 et son lemme afin d'automatiser la création de la bdd
 """
 

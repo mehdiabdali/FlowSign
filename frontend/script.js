@@ -12,16 +12,27 @@ const clock = new THREE.Clock();
 
 let scene, camera, renderer, mixer, avatar;
 
-/* INITIALISATION DE LA SCÈNE ET DE L'AVATAR FIXE */
+/* VARIABLES GLOBALES POUR LE LECTEUR ET LA VITESSE */
+let sequenceFichiers = [];
+let sequenceMots = [];
+let indexLecture = 0;
+let ecouteurFinAnimation = null;
+let vitesseActuelle = 1;
+let actionPrecedente = null;
+
+/* INITIALISATION DE LA SCÈNE 3D */
 function initScene() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
 
-    camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    const largeur = container.clientWidth || 500;
+    const hauteur = container.clientHeight || 480;
+
+    camera = new THREE.PerspectiveCamera(45, largeur / hauteur, 0.1, 100);
     camera.position.set(0, 1.5, 5);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(largeur, hauteur);
     container.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 2);
@@ -39,39 +50,75 @@ function initScene() {
         mixer = new THREE.AnimationMixer(avatar);
         animate();
     }, undefined, (error) => console.error("Erreur chargement avatar de base :", error));
+
+    window.addEventListener('resize', () => {
+        if (!container) return;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
 }
 
-/* APPLICATION D'UNE ANIMATION EXTERNE */
-function appliquerAnimationSequence(fichiers, index = 0) {
+/* APPLICATION D'UNE ANIMATION EXTERNE (SÉQUENCE AVEC FONDU) */
+function appliquerAnimationSequence(index) {
     if (!avatar || !mixer) return;
-    if (index >= fichiers.length) return; // fin de la séquence
+    
+    if (index >= sequenceFichiers.length) {
+        mettreAJourIndicateur(-1, sequenceMots.length, "");
+        indexLecture = 0;
+        actionPrecedente = null; 
+        return; 
+    }
 
-    loader.load(fichiers[index], (gltf) => {
+    indexLecture = index;
+    mettreAJourIndicateur(index, sequenceFichiers.length, sequenceMots[index]);
+
+    loader.load(sequenceFichiers[index], (gltf) => {
         const clip = gltf.animations[0];
 
         if (clip) {
-            mixer.stopAllAction();
-
             const action = mixer.clipAction(clip, avatar);
             action.setLoop(THREE.LoopOnce);
             action.clampWhenFinished = true;
-            action.play();
 
-            // Quand l'animation est terminée → passe à la suivante
-            mixer.addEventListener('finished', function passerSuivant() {
-                mixer.removeEventListener('finished', passerSuivant); // évite les doublons
-                appliquerAnimationSequence(fichiers, index + 1); // signe suivant
-            });
+            if (actionPrecedente) {
+                action.play();
+                actionPrecedente.crossFadeTo(action, 0.2, true);
+            } else {
+                mixer.stopAllAction();
+                action.play();
+            }
+
+            actionPrecedente = action;
+
+            if (ecouteurFinAnimation) {
+                mixer.removeEventListener('finished', ecouteurFinAnimation);
+            }
+
+            ecouteurFinAnimation = function() {
+                appliquerAnimationSequence(indexLecture + 1);
+            };
+            
+            mixer.addEventListener('finished', ecouteurFinAnimation);
         }
     }, undefined, (error) => console.error("Erreur chargement animation :", error));
 }
 
-/* LOGIQUE DE COMMUNICATION AVEC LE BACKEND ET GESTION DES ERREURS */
+/* COMMUNICATION AVEC LE BACKEND */
 async function executerTraduction() {
     const texte = champTexte.value.trim();
     if (!texte) return;
 
     zoneResultat.innerHTML = "<em>Analyse en cours...</em>";
+    mettreAJourIndicateur(-1, 0, ""); 
+    
+    document.getElementById('controles-lecture').style.display = 'none';
+    
+    if (mixer) {
+        mixer.stopAllAction();
+        mixer.timeScale = vitesseActuelle;
+        actionPrecedente = null;
+    }
 
     try {
         const reponse = await fetch('http://127.0.0.1:5000/api/traduire', {
@@ -85,11 +132,11 @@ async function executerTraduction() {
         const data = await reponse.json();
 
         if (data.mots_traduits && data.mots_traduits.length > 0) {
-            const motsFormates = data.mots_traduits.map(mot => {
+            const motsFormates = data.mots_traduits.map((mot, i) => {
                 if (data.mots_sans_animation && data.mots_sans_animation.includes(mot)) {
-                    return `<span style="color:red;" title="Aucune animation disponible">⚠ ${mot}</span>`;
+                    return `<span id="mot-${i}" style="color:red; transition: all 0.3s; padding: 2px 6px; border-radius: 4px; border: 2px solid transparent;" title="Aucune animation disponible">⚠ ${mot}</span>`;
                 }
-                return `<span style="color:green;">${mot}</span>`;
+                return `<span id="mot-${i}" style="color:green; transition: all 0.3s; padding: 2px 6px; border-radius: 4px; border: 2px solid transparent;">${mot}</span>`;
             });
 
             let html = `Séquence LSF : ${motsFormates.join(' → ')}`;
@@ -105,7 +152,11 @@ async function executerTraduction() {
                 zoneResultat.innerHTML = html;
                 
                 if (data.fichiers_glb && data.fichiers_glb.length > 0) {
-                    appliquerAnimationSequence(data.fichiers_glb);
+                    sequenceFichiers = data.fichiers_glb;
+                    sequenceMots = data.mots_traduits.filter(mot => !data.mots_sans_animation.includes(mot));
+                    indexLecture = 0;
+                    
+                    document.getElementById('controles-lecture').style.display = 'flex';
                 }
             }
         } else {
@@ -118,7 +169,26 @@ async function executerTraduction() {
     }
 }
 
-/* BOUCLE DE RENDU (ANIMATION FRAME) */
+/* MISE EN SURBRILLANCE (EFFET KARAOKÉ) */
+function mettreAJourIndicateur(index, total, mot) {
+    for (let i = 0; i < total; i++) {
+        const elementMot = document.getElementById(`mot-${i}`);
+        if (elementMot) {
+            elementMot.style.backgroundColor = "transparent";
+            elementMot.style.borderColor = "transparent";
+        }
+    }
+
+    if (index >= 0 && index < total) {
+        const motActuel = document.getElementById(`mot-${index}`);
+        if (motActuel) {
+            motActuel.style.backgroundColor = "#e3f2fd"; 
+            motActuel.style.borderColor = "#2196F3"; 
+        }
+    }
+}
+
+/* BOUCLE DE RENDU 3D */
 function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
@@ -126,29 +196,13 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-/* ÉCOUTEURS D'ÉVÉNEMENTS */
-boutonTraduire.addEventListener('click', executerTraduction);
-
-champTexte.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        executerTraduction();
-    }
-});
-
-initScene();
-
-
-/* --- NOUVEAU SYSTÈME DE DICTIONNAIRE AVEC RECHERCHE --- */
-
+/* --- SYSTÈME DE DICTIONNAIRE --- */
 const btnDico = document.getElementById('btnDico');
 const zoneDico = document.getElementById('zoneDico');
 const conteneurMots = document.getElementById('conteneurMots');
 const champRecherche = document.getElementById('rechercheDico');
-
 let motsDictionnaire = [];
 
-// Fonction pour afficher les étiquettes HTML
 function afficherMots(listeDeMots) {
     if (listeDeMots.length > 0) {
         const htmlMots = listeDeMots.map(lemme => {
@@ -177,16 +231,14 @@ async function chargerDictionnaire() {
 
     try {
         const reponse = await fetch('http://127.0.0.1:5000/api/dictionnaire');
-        
         if (!reponse.ok) throw new Error("Erreur serveur");
-        
         const data = await reponse.json();
 
         if (data.mots && data.mots.length > 0) {
             motsDictionnaire = data.mots;
             afficherMots(motsDictionnaire);
         } else {
-            conteneurMots.innerHTML = "<em>Aucun mot n'est encore enregistré dans la base de données.</em>";
+            conteneurMots.innerHTML = "<em>Aucun mot n'est encore enregistré.</em>";
         }
     } catch (error) {
         console.error("Erreur dictionnaire :", error);
@@ -194,16 +246,62 @@ async function chargerDictionnaire() {
     }
 }
 
-// Filtre de recherche en temps réel
 champRecherche.addEventListener('input', (e) => {
     const texteRecherche = e.target.value.toLowerCase();
-    
     const motsFiltres = motsDictionnaire.filter(lemme => {
         const motLisible = lemme.toLowerCase().replace(/_/g, ' ');
         return motLisible.includes(texteRecherche);
     });
-    
     afficherMots(motsFiltres);
 });
 
+/* --- TOUS LES ÉCOUTEURS D'ÉVÉNEMENTS --- */
+boutonTraduire.addEventListener('click', executerTraduction);
+
+champTexte.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        executerTraduction();
+    }
+});
+
 btnDico.addEventListener('click', chargerDictionnaire);
+
+const selectVitesse = document.getElementById('selectVitesse');
+if (selectVitesse) {
+    selectVitesse.addEventListener('change', (e) => {
+        vitesseActuelle = parseFloat(e.target.value);
+        if (mixer && mixer.timeScale > 0) {
+            mixer.timeScale = vitesseActuelle;
+        }
+    });
+}
+
+document.getElementById('btnPlay').addEventListener('click', () => {
+    if (!mixer) return;
+    
+    if (mixer.timeScale === 0) {
+        mixer.timeScale = vitesseActuelle;
+    } else if (indexLecture === 0) {
+        mixer.timeScale = vitesseActuelle;
+        actionPrecedente = null; 
+        appliquerAnimationSequence(0);
+    }
+});
+
+document.getElementById('btnPause').addEventListener('click', () => {
+    if (mixer) {
+        mixer.timeScale = 0;
+    }
+});
+
+document.getElementById('btnRestart').addEventListener('click', () => {
+    if (mixer) {
+        mixer.timeScale = vitesseActuelle;
+        mixer.stopAllAction();
+        actionPrecedente = null;
+        appliquerAnimationSequence(0);
+    }
+});
+
+initScene();
