@@ -87,10 +87,10 @@ def json_sequence_vers_glb(chemin_json, chemin_avatar_base, chemin_sortie, fps=2
         filepath=chemin_sortie,
         export_format='GLB',
         export_animations=True,
-        export_nla_strips=True,
-        export_skins=True,
-        export_morph=True,
-        use_selection=False
+        export_nla_strips=True, 
+        export_skins=False,
+        export_morph=False,
+        use_selection=True 
     )
 
     print(f"✅ GLB exporté → {chemin_sortie}")
@@ -98,8 +98,8 @@ def json_sequence_vers_glb(chemin_json, chemin_avatar_base, chemin_sortie, fps=2
 
 # ── Utilisation dans Blender Text Editor ──────────────────────────────────────
 json_sequence_vers_glb(
-    chemin_json        = "C:/projet/animations/LSF_Bonjour_mediapipe.json",
-    chemin_avatar_base = "C:/projet/avatar_base.blend",
-    chemin_sortie      = "C:/projet/static/animations/LSF_Bonjour.glb",
+    chemin_json        = "/home/useradd/videos_flowsign/animations/LSF_Bonjour_mediapipe.json",
+    chemin_avatar_base = "/home/useradd/videos_flowsign/avatar_base.blend",
+    chemin_sortie      = "/home/useradd/FlowSign/frontend/static/animations/LSF_Bonjour.glb",
     fps                = 24
 )

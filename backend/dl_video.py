@@ -83,6 +83,6 @@ def telecharger_depuis_fichier(mots_path, dossier_sortie, delai=1.0):
 # ── Lancement ──────────────────────────────────────────────────────────────────
 telecharger_depuis_fichier(
     mots_path      = "./backend/mots.txt",
-    dossier_sortie = "./backend/videos_flowsign",
+    dossier_sortie = "/home/useradd/videos_flowsign/videos",
     delai          = 1.5   # secondes entre chaque téléchargement
 )

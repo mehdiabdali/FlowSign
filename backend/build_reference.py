@@ -2,9 +2,9 @@
 import numpy as np
 import json
 import os
-from extract_landmarks import extraire_landmarks_video
+from extract import extraire_landmarks_video
 
-def resample_sequence(sequence, target_len=30):
+def resample_sequence(sequence, target_len=40):
     """
     Rééchantillonne une séquence à une longueur fixe (interpolation).
     Nécessaire pour comparer des vidéos de durées différentes.
@@ -33,10 +33,10 @@ def construire_bdd_reference(dossier_videos, fichier_sortie="reference_landmarks
             print(f"  ⚠️ Aucun landmark détecté pour {lemme}")
             continue
 
-        # Normalisation à 30 frames
-        sequence = resample_sequence(landmarks, target_len=30)
+        # Normalisation à 40 frames
+        sequence = resample_sequence(landmarks, target_len=40)
         bdd[lemme] = sequence.tolist()
-        print(f"  ✅ {lemme} : {len(landmarks)} frames → normalisé à 30")
+        print(f"  ✅ {lemme} : {len(landmarks)} frames → normalisé à 40")
 
     with open(fichier_sortie, 'w') as f:
         json.dump(bdd, f)

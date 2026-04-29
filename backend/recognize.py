@@ -1,7 +1,8 @@
 # recognize.py
 import numpy as np
 import json
-from extract_landmarks import extraire_landmarks_video, resample_sequence
+from extract import extraire_landmarks_video
+from build_reference import resample_sequence
 
 def dtw_distance(seq1, seq2):
     """
