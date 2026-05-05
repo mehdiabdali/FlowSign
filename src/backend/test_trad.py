@@ -10,7 +10,7 @@ def test_espaces_seulement():
     assert traduire_vers_lsf("   ") == []
 
 def test_mot_simple():
-    resultat = traduire_vers_lsf("mange")
+    resultat = traduire_vers_lsf("manger")
     assert "MANGER" in resultat
 
 def test_sujet_verbe():
