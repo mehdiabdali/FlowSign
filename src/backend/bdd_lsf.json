@@ -14,5 +14,9 @@
     {
         "lemme": "NON",
         "fichier_3d": "static/animations/NON.glb"
+    },
+    {
+        "lemme": "PAIN",
+        "fichier_3d": "static/animations/PAIN.glb"
     }
 ]
