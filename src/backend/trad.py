@@ -9,7 +9,6 @@ def traduire_vers_lsf(texte):
     marqueur_temps, sujets, objets, verbes, negations, autres = [], [], [], [], [], []
     temps_global = None
 
-    # --- NOUVEAU : On vérifie d'abord si un marqueur temporel existe dans toute la phrase ---
     mots_cles_temps = [mot.lemma_.upper() for mot in doc]
     a_un_marqueur_explicite = any(m in ["DEMAIN", "HIER", "AVANT-HIER", "APRÈS-DEMAIN"] for m in mots_cles_temps)
 
@@ -21,7 +20,6 @@ def traduire_vers_lsf(texte):
         #utile pour debuguer
         print(f"{mot.text:10} | {lemme:10} | {nature:6} | {fonction} ")  
 
-        # (Blocs 1, 2, 3 identiques...)
         if nature in ["PUNCT", "SPACE", "DET", "ADP", "CCONJ", "SCONJ"] or lemme in ["NE", "N'"]:
             continue
         
@@ -66,7 +64,7 @@ def traduire_vers_lsf(texte):
     # 7. Assemblage final
     phrase = marqueur_temps + sujets + objets + autres + verbes + negations
 
-    # On n'ajoute le jeton (FUTUR) ou (PASSÉ) que si on n'a pas de marqueur précis
+    # On n'ajoute (FUTUR) ou (PASSÉ) que si on n'a pas de marqueur précis
     if temps_global and not marqueur_temps: 
         phrase.append(temps_global)
     
