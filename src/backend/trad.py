@@ -17,7 +17,9 @@ def traduire_vers_lsf(texte):
         lemme = mot.lemma_.upper()
         nature = mot.pos_
         fonction = mot.dep_
-        print(f"{mot.text:10} | {lemme:10} | {nature:6} | {fonction} ")  # DEBUG
+
+        #utile pour debuguer
+        print(f"{mot.text:10} | {lemme:10} | {nature:6} | {fonction} ")  
 
         # (Blocs 1, 2, 3 identiques...)
         if nature in ["PUNCT", "SPACE", "DET", "ADP", "CCONJ", "SCONJ"] or lemme in ["NE", "N'"]:
