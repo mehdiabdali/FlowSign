@@ -262,6 +262,7 @@ champTexte.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         executerTraduction();
+        appliquerAnimationSequence(0);
     }
 });
 

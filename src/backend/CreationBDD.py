@@ -11,7 +11,7 @@ et son lemme afin d'automatiser la création de la bdd
 import json
 from pathlib import Path
 
-def synchroniser_bdd_depuis_fichiers(dossier_animations, fichier_sortie_json):
+def synchroniser_bdd(dossier_animations, fichier_json):
     """
     Scanne le dossier des animations et génère la base de données JSON correspondante.
     """
@@ -44,10 +44,10 @@ def synchroniser_bdd_depuis_fichiers(dossier_animations, fichier_sortie_json):
         print("-", lemme)
 
     # Sauvegarde finale
-    with open(fichier_sortie_json, 'w', encoding='utf-8') as f:
+    with open(fichier_json, 'w', encoding='utf-8') as f:
         json.dump(base_de_donnees, f, indent=4, ensure_ascii=False)
 
-    print(f" {len(base_de_donnees)} animations ajouté dans {fichier_sortie_json}")
+    print(f" {len(base_de_donnees)} animations ajouté dans {fichier_json}")
 
 # --- CONFIGURATION ---
 if __name__ == "__main__":
@@ -56,4 +56,4 @@ if __name__ == "__main__":
     # Nom du fichier JSON 
     destination_json = "bdd_lsf.json"
     print("mot ajouté:")
-    synchroniser_bdd_depuis_fichiers(dossier_source, destination_json)
+    synchroniser_bdd(dossier_source, destination_json)
