@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BUCKET_BASE_URL = os.getenv("BUCKET_BASE_URL")  # ex: https://objectstorage.eu-paris-1.oraclecloud.com/n/NAMESPACE/b/BUCKET/o/
+BUCKET_BASE_URL = os.getenv("BUCKET_BASE_URL")  
 FICHIER_JSON = os.getenv("FICHIER_JSON")
 
 

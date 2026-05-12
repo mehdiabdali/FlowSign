@@ -17,7 +17,7 @@ CORS(app)
 client = MongoClient(os.getenv("MONGO_URI"))
 db = client['flowsign_db']
 collection = db['signes']
-DOSSIER_ANIMATIONS = os.getenv("DOSSIER_ANIMATIONS")
+DOSSIER_ANIMATIONS = os.getenv("BUCKET_BASE_URL")
 FICHIER_JSON = os.getenv("FICHIER_JSON")
 
 # 3. Synchro automatique au démarrage (fonctionne avec Gunicorn ET python main.py)

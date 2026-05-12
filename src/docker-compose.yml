@@ -17,7 +17,7 @@ services:
     environment:
       - MONGO_URI=mongodb://mongodb:27017/flowsign
       - FICHIER_JSON=/app/bdd_lsf.json
-      - BUCKET_BASE_URL=https://objectstorage.eu-paris-1.oraclecloud.com/p/dagBDUq8WL8c1AVz4mXQnYFJ_zHPSut20oLPB1EQBrOvrzyZL6GboXPgCs_Np6x8/n/axkeswuyorub/b/flowsign-frontend/o/;
+      - BUCKET_BASE_URL=https://objectstorage.eu-paris-1.oraclecloud.com/p/dagBDUq8WL8c1AVz4mXQnYFJ_zHPSut20oLPB1EQBrOvrzyZL6GboXPgCs_Np6x8/n/axkeswuyorub/b/flowsign-frontend/o/
     volumes:
       - ./frontend/static/animations:/app/static/animations  # monte les .glb dans le backend
     depends_on:
