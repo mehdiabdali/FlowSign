@@ -15,8 +15,8 @@ from pathlib import Path
 
 load_dotenv()
 
-dossier_source = os.getenv("DOSSIER_ANIMATIONS")
-destination_json = os.getenv("FICHIER_JSON_DESTINATION")
+DOSSIER_ANIMATIONS = os.getenv("DOSSIER_ANIMATIONS")
+FICHIER_JSON = os.getenv("FICHIER_JSON")
 
 def synchroniser_bdd(dossier_animations, fichier_json):
     """
@@ -59,4 +59,4 @@ def synchroniser_bdd(dossier_animations, fichier_json):
 # --- CONFIGURATION ---
 if __name__ == "__main__":
     print("mot ajouté:")
-    synchroniser_bdd(dossier_source, destination_json)
+    synchroniser_bdd(DOSSIER_ANIMATIONS, FICHIER_JSON)
