@@ -22,7 +22,7 @@ FICHIER_JSON = os.getenv("FICHIER_JSON")
 
 # 3. Synchro automatique au démarrage (fonctionne avec Gunicorn ET python main.py)
 print("--- Synchronisation de la base de données ---")
-synchroniser_bdd(DOSSIER_ANIMATIONS, FICHIER_JSON)
+synchroniser_bdd_depuis_bucket(DOSSIER_ANIMATIONS, FICHIER_JSON)
 remplir_base_depuis_json(FICHIER_JSON)
 print("--- Synchronisation terminée ---")
 
