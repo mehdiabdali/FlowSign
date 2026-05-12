@@ -44,6 +44,7 @@ def remplir_base_depuis_json(chemin_fichier_json):
             {"$set": doc},
             upsert=True
         )
+        collection.create_index("lemme", unique=True)
         compteur += 1
 
     print(f"Succès ! {compteur} signes mis à jour dans MongoDB.")
