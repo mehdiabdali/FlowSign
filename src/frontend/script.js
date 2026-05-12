@@ -14,6 +14,7 @@ const clock = new THREE.Clock();
 #TODO
 //mettre l adresse ip
 const API_URL = "http://[IP]";
+// http://127.0.0.1:5000
 
 
 let scene, camera, renderer, mixer, avatar;
@@ -236,7 +237,7 @@ async function chargerDictionnaire() {
     champRecherche.value = ""; 
 
     try {
-        const reponse = await fetch('http://127.0.0.1:5000/api/dictionnaire');
+        const reponse = await fetch('${API_URL}/api/traduire');
         if (!reponse.ok) throw new Error("Erreur serveur");
         const data = await reponse.json();
 
