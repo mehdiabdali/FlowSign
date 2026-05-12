@@ -2,13 +2,22 @@ import json
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
+from pathlib import Path
+
+load_dotenv()
+
+MONGO_URI = os.getenv("MONGO_URI")
+DB_NAME = "flowsign_db"
+COLLECTION_NAME = "signes"
+DOSSIER_ANIMATIONS = os.getenv("DOSSIER_ANIMATIONS")
+DESTINATION_JSON = os.getenv("FICHIER_JSON_DESTINATION")
 
 def remplir_base_depuis_json(chemin_fichier_json):
     try:
-        load_dotenv()
-        client = MongoClient(os.getenv("MONGO_URI"))
-        db = client['flowsign_db']
-        collection = db['signes']
+        # Utilisation des variables globales
+        client = MongoClient(MONGO_URI)
+        db = client[DB_NAME]
+        collection = db[COLLECTION_NAME]
     except Exception as e:
         print(f"Erreur de connexion à MongoDB : {e}")
         return
@@ -40,5 +49,5 @@ def remplir_base_depuis_json(chemin_fichier_json):
     print(f"Succès ! {compteur} signes mis à jour dans MongoDB.")
 
 if __name__ == "__main__":
-    fichier_source_json = "bdd_lsf.json"
-    remplir_base_depuis_json(fichier_source_json)
+    # On passe la variable configurée en haut
+    remplir_base_depuis_json(DESTINATION_JSON)
