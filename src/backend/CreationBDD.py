@@ -7,56 +7,66 @@ et son lemme afin d'automatiser la création de la bdd
 
 
 
-
 import os
 import json
+import requests
 from dotenv import load_dotenv
-from pathlib import Path
 
 load_dotenv()
 
-DOSSIER_ANIMATIONS = os.getenv("DOSSIER_ANIMATIONS")
+BUCKET_BASE_URL = os.getenv("BUCKET_BASE_URL")  # ex: https://objectstorage.eu-paris-1.oraclecloud.com/n/NAMESPACE/b/BUCKET/o/
 FICHIER_JSON = os.getenv("FICHIER_JSON")
 
-def synchroniser_bdd(dossier_animations, fichier_json):
+
+def synchroniser_bdd_depuis_bucket(bucket_base_url, fichier_json):
     """
-    Scanne le dossier des animations et génère la base de données JSON correspondante.
+    Liste les fichiers .glb dans le bucket OCI et génère le JSON correspondant.
     """
-    chemin_dossier = Path(dossier_animations)
-    
+
+    # L'API OCI permet de lister les objets d'un bucket public avec ce endpoint
+    url_liste = bucket_base_url.rstrip("/") + "?fields=name"
+
+    print(f"Connexion au bucket : {url_liste}")
+    reponse = requests.get(url_liste)
+
+    if reponse.status_code != 200:
+        print(f"Erreur lors de la connexion au bucket (status {reponse.status_code})")
+        return
+
+    data = reponse.json()
+    objets = data.get("items", [])
+
     base_de_donnees = []
-    
-    # On cherche tous les fichiers .glb dans le dossier
-    fichiers_glb = list(chemin_dossier.glob("*.glb"))
-    
-    for fichier in fichiers_glb:
-        # stem récupère le nom sans l'extension
-        nom_brut = fichier.stem
+
+    for objet in objets:
+        nom = objet.get("name", "")
+
+        # On ne garde que les .glb dans le dossier animations
+        if not nom.startswith("static/animations/") or not nom.endswith(".glb"):
+            continue
+
+        nom_fichier = nom.split("/")[-1]   # ex: BONJOUR.glb
+        nom_brut = nom_fichier.replace(".glb", "")
 
         if nom_brut.lower() == "avatar_base":
             continue
-        
-        # On crée le lemme en majuscules (ex: 'BONJOUR')
-        # On remplace aussi les espaces ou tirets par des underscores par sécurité
+
         lemme = nom_brut.upper().replace(" ", "_").replace("-", "_")
-        
-        # Construction de l'entrée pour le JSON
+
         entree = {
             "lemme": lemme,
-            "fichier_3d": f"static/animations/{fichier.name}"
-            
+            "fichier_3d": nom  # chemin relatif : static/animations/BONJOUR.glb
         }
-        
+
         base_de_donnees.append(entree)
         print("-", lemme)
 
-    # Sauvegarde finale
     with open(fichier_json, 'w', encoding='utf-8') as f:
         json.dump(base_de_donnees, f, indent=4, ensure_ascii=False)
 
-    print(f" {len(base_de_donnees)} animations ajouté dans {fichier_json}")
+    print(f"{len(base_de_donnees)} animations ajoutées dans {fichier_json}")
 
-# --- CONFIGURATION ---
+
 if __name__ == "__main__":
-    print("mot ajouté:")
-    synchroniser_bdd(DOSSIER_ANIMATIONS, FICHIER_JSON)
+    print("Mots ajoutés :")
+    synchroniser_bdd_depuis_bucket(BUCKET_BASE_URL, FICHIER_JSON)

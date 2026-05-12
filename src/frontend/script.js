@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
    //1. CONFIGURATION ET VARIABLES D'ENVIRONNEMENT
 
 
-const API_URL = "http://145.241.174.38:5000"; 
+const API_URL = ""; 
 
 const BUCKET_BASE_URL = "https://objectstorage.eu-paris-1.oraclecloud.com/p/dagBDUq8WL8c1AVz4mXQnYFJ_zHPSut20oLPB1EQBrOvrzyZL6GboXPgCs_Np6x8/n/axkeswuyorub/b/flowsign-frontend/o/";
 
@@ -317,15 +317,15 @@ if (selectVitesse) {
 
 btnPlay.addEventListener('click', () => {
     if (!mixer) return;
-    
     if (mixer.timeScale === 0) {
-        mixer.timeScale = vitesseActuelle; // Reprise après pause
-    } else if (indexLecture === 0) {
-        mixer.timeScale = vitesseActuelle; // Lancement initial
-        actionPrecedente = null; 
-        appliquerAnimationSequence(0);
+        mixer.timeScale = vitesseActuelle;    // reprise après pause
+    } else {
+        mixer.timeScale = vitesseActuelle;    // lancement initial ou relance
+        actionPrecedente = null;
+        appliquerAnimationSequence(indexLecture); // reprend là où on en est
     }
 });
+
 
 btnPause.addEventListener('click', () => {
     if (mixer) {
