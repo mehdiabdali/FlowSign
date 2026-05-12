@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 from trad import traduire_vers_lsf
-from CreationBDD import synchroniser_bdd
+from CreationBDD import synchroniser_bdd_depuis_bucket
 from populate_db import remplir_base_depuis_json
 
 # 1. Chargement des variables d'environnement EN PREMIER
