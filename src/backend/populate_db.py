@@ -10,7 +10,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 DB_NAME = "flowsign_db"
 COLLECTION_NAME = "signes"
 DOSSIER_ANIMATIONS = os.getenv("DOSSIER_ANIMATIONS")
-DESTINATION_JSON = os.getenv("FICHIER_JSON_DESTINATION")
+FICHIER_JSON = os.getenv("FICHIER_JSON")
 
 def remplir_base_depuis_json(chemin_fichier_json):
     try:
@@ -50,4 +50,4 @@ def remplir_base_depuis_json(chemin_fichier_json):
 
 if __name__ == "__main__":
     # On passe la variable configurée en haut
-    remplir_base_depuis_json(DESTINATION_JSON)
+    remplir_base_depuis_json(FICHIER_JSON)
