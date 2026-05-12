@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+
 /* CONFIGURATION ET VARIABLES GLOBALES */
 const container = document.getElementById('canvas-3d');
 const boutonTraduire = document.getElementById('btnTraduire');
@@ -9,6 +10,12 @@ const zoneResultat = document.getElementById('resultat');
 
 const loader = new GLTFLoader();
 const clock = new THREE.Clock();
+
+#TODO
+//mettre l adresse ip
+const API_URL = "http://[IP]";
+// http://127.0.0.1:5000
+
 
 let scene, camera, renderer, mixer, avatar;
 
@@ -121,7 +128,7 @@ async function executerTraduction() {
     }
 
     try {
-        const reponse = await fetch('http://127.0.0.1:5000/api/traduire', {
+        const reponse = await fetch(`${API_URL}/api/traduire`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ texte: texte })
@@ -230,7 +237,7 @@ async function chargerDictionnaire() {
     champRecherche.value = ""; 
 
     try {
-        const reponse = await fetch('http://127.0.0.1:5000/api/dictionnaire');
+        const reponse = await fetch('${API_URL}/api/traduire');
         if (!reponse.ok) throw new Error("Erreur serveur");
         const data = await reponse.json();
 

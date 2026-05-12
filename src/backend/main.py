@@ -65,8 +65,9 @@ def obtenir_dictionnaire():
         return jsonify({"erreur": "Impossible de charger le dictionnaire"}), 500
 
 if __name__ == '__main__':
-    print("Serveur API FlowSign démarré sur http://127.0.0.1:5000")
-    #pour le local
-    app.run(debug=True, port=5000)
-    # Pour le deploiement
-    #app.run(host="0.0.0.0", port=5000)
+    # On affiche un message clair pour confirmer que le conteneur est prêt
+    print("--- Démarrage de l'API FlowSign ---")
+    print(f"Connexion MongoDB sur : {os.getenv('MONGO_URI')}")
+    print("Serveur en écoute sur http://0.0.0.0:5000")
+    print("-----------------------------------")
+    app.run(host="0.0.0.0", port=5000)

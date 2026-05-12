@@ -8,8 +8,15 @@ et son lemme afin d'automatiser la création de la bdd
 
 
 
+import os
 import json
+from dotenv import load_dotenv
 from pathlib import Path
+
+load_dotenv()
+
+dossier_source = os.getenv("DOSSIER_ANIMATIONS")
+destination_json = os.getenv("FICHIER_JSON_DESTINATION")
 
 def synchroniser_bdd(dossier_animations, fichier_json):
     """
@@ -51,9 +58,5 @@ def synchroniser_bdd(dossier_animations, fichier_json):
 
 # --- CONFIGURATION ---
 if __name__ == "__main__":
-    # Chemin vers  dossier d'animations 
-    dossier_source = "../frontend/static/animations"
-    # Nom du fichier JSON 
-    destination_json = "bdd_lsf.json"
     print("mot ajouté:")
     synchroniser_bdd(dossier_source, destination_json)
