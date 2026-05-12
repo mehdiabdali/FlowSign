@@ -6,11 +6,11 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // TODO: Remplacer par l'IP publique de ton instance Oracle Cloud pour la production.
 // Exemple : const API_URL = "http://142.250.179.78";
-const API_URL = "http://127.0.0.1:5000"; 
+const API_URL = "http://145.241.174.38:5000"; 
 
 // TODO: Remplacer par l'URL publique de ton bucket OCI. 
 // Assure-toi que la structure des dossiers sur le bucket correspond (ex: static/animations/...)
-const BUCKET_BASE_URL = "https://objectstorage.eu-paris-1.oraclecloud.com/n/TON_NAMESPACE/b/TON_BUCKET/o/";
+const BUCKET_BASE_URL = "https://objectstorage.eu-paris-1.oraclecloud.com/p/dagBDUq8WL8c1AVz4mXQnYFJ_zHPSut20oLPB1EQBrOvrzyZL6GboXPgCs_Np6x8/n/axkeswuyorub/b/flowsign-frontend/o/";
 
    //2. RÉCUPÉRATION DES BOUTONS ET ZONES DE TEXTE (HTML)
 
