@@ -6,7 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const API_URL = ""; 
 
-const BUCKET_BASE_URL = "https://objectstorage.eu-paris-1.oraclecloud.com/p/dagBDUq8WL8c1AVz4mXQnYFJ_zHPSut20oLPB1EQBrOvrzyZL6GboXPgCs_Np6x8/n/axkeswuyorub/b/flowsign-frontend/o/";
+const BUCKET_BASE_URL = "";
 
    //2. RÉCUPÉRATION DES BOUTONS ET ZONES DE TEXTE (HTML)
 
@@ -69,7 +69,7 @@ function initScene() {
     scene.add(directionalLight);
 
     // Chargement de l'avatar au démarrage du site (directement depuis le Bucket OCI)
-    const urlAvatar = BUCKET_BASE_URL + 'static/animations/avatar_base.glb';
+    const urlAvatar ='static/animations/avatar_base.glb';
     loader.load(urlAvatar, (gltf) => {
         avatar = gltf.scene;
         avatar.position.y = -1;
@@ -106,7 +106,7 @@ function appliquerAnimationSequence(index) {
     mettreAJourIndicateur(index, sequenceFichiers.length, sequenceMots[index]);
 
     // On combine l'URL de base du cloud avec le chemin relatif fourni par la base de données
-    const urlFichier3D = BUCKET_BASE_URL + sequenceFichiers[index];
+    const urlFichier3D = '/' + sequenceFichiers[index];
 
     loader.load(urlFichier3D, (gltf) => {
         const clip = gltf.animations[0];
