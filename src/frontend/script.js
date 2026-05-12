@@ -1,33 +1,56 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+   //1. CONFIGURATION ET VARIABLES D'ENVIRONNEMENT
 
-/* CONFIGURATION ET VARIABLES GLOBALES */
+
+// TODO: Remplacer par l'IP publique de ton instance Oracle Cloud pour la production.
+// Exemple : const API_URL = "http://142.250.179.78";
+const API_URL = "http://127.0.0.1:5000"; 
+
+// TODO: Remplacer par l'URL publique de ton bucket OCI. 
+// Assure-toi que la structure des dossiers sur le bucket correspond (ex: static/animations/...)
+const BUCKET_BASE_URL = "https://objectstorage.eu-paris-1.oraclecloud.com/n/TON_NAMESPACE/b/TON_BUCKET/o/";
+
+   //2. RÉCUPÉRATION DES BOUTONS ET ZONES DE TEXTE (HTML)
+
 const container = document.getElementById('canvas-3d');
 const boutonTraduire = document.getElementById('btnTraduire');
 const champTexte = document.getElementById('champTexte');
 const zoneResultat = document.getElementById('resultat');
 
+// Dictionnaire
+const btnDico = document.getElementById('btnDico');
+const zoneDico = document.getElementById('zoneDico');
+const conteneurMots = document.getElementById('conteneurMots');
+const champRecherche = document.getElementById('rechercheDico');
+
+// Contrôles de lecture
+const selectVitesse = document.getElementById('selectVitesse');
+const btnPlay = document.getElementById('btnPlay');
+const btnPause = document.getElementById('btnPause');
+const btnRestart = document.getElementById('btnRestart');
+
+   //3. VARIABLES D'ÉTAT DE L'APPLICATION
+
+// Moteur 3D
+let scene, camera, renderer, mixer, avatar;
 const loader = new GLTFLoader();
 const clock = new THREE.Clock();
 
-#TODO
-//mettre l adresse ip
-const API_URL = "http://[IP]";
-// http://127.0.0.1:5000
-
-
-let scene, camera, renderer, mixer, avatar;
-
-/* VARIABLES GLOBALES POUR LE LECTEUR ET LA VITESSE */
-let sequenceFichiers = [];
-let sequenceMots = [];
-let indexLecture = 0;
-let ecouteurFinAnimation = null;
+// Gestion de la séquence d'animation LSF
+let sequenceFichiers = [];    // Chemins des fichiers renvoyés par l'API
+let sequenceMots = [];        // Mots traduits avec succès
+let indexLecture = 0;         // Position actuelle dans la phrase
+let ecouteurFinAnimation = null; // Référence pour nettoyer les événements
+let actionPrecedente = null;  // Permet de gérer la transition fluide (crossfade)
 let vitesseActuelle = 1;
-let actionPrecedente = null;
 
-/* INITIALISATION DE LA SCÈNE 3D */
+// Données
+let motsDictionnaire = [];    // Stocke le vocabulaire pour la recherche locale
+
+   //4. INITIALISATION DU MOTEUR 3D (THREE.JS)
+
 function initScene() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
@@ -42,22 +65,26 @@ function initScene() {
     renderer.setSize(largeur, hauteur);
     container.appendChild(renderer.domElement);
 
+    // Éclairage standard pour bien voir les volumes du personnage
     const ambientLight = new THREE.AmbientLight(0xffffff, 2);
     scene.add(ambientLight);
-
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(2, 2, 2);
     scene.add(directionalLight);
 
-    loader.load('static/animations/avatar_base.glb', (gltf) => {
+    // Chargement de l'avatar au démarrage du site (directement depuis le Bucket OCI)
+    const urlAvatar = BUCKET_BASE_URL + 'static/animations/avatar_base.glb';
+    loader.load(urlAvatar, (gltf) => {
         avatar = gltf.scene;
         avatar.position.y = -1;
         scene.add(avatar);
         
+        // Le mixer est le chef d'orchestre qui gère la lecture des animations
         mixer = new THREE.AnimationMixer(avatar);
         animate();
-    }, undefined, (error) => console.error("Erreur chargement avatar de base :", error));
+    }, undefined, (error) => console.error("Erreur chargement avatar de base depuis OCI :", error));
 
+    // Gestion du redimensionnement de la fenêtre
     window.addEventListener('resize', () => {
         if (!container) return;
         camera.aspect = container.clientWidth / container.clientHeight;
@@ -66,10 +93,12 @@ function initScene() {
     });
 }
 
-/* APPLICATION D'UNE ANIMATION EXTERNE (SÉQUENCE AVEC FONDU) */
+   //5. LOGIQUE D'ANIMATION (SÉQUENCE LSF)
+
 function appliquerAnimationSequence(index) {
     if (!avatar || !mixer) return;
     
+    // Condition d'arrêt : on a joué tous les mots de la phrase
     if (index >= sequenceFichiers.length) {
         mettreAJourIndicateur(-1, sequenceMots.length, "");
         indexLecture = 0;
@@ -80,14 +109,18 @@ function appliquerAnimationSequence(index) {
     indexLecture = index;
     mettreAJourIndicateur(index, sequenceFichiers.length, sequenceMots[index]);
 
-    loader.load(sequenceFichiers[index], (gltf) => {
+    // On combine l'URL de base du cloud avec le chemin relatif fourni par la base de données
+    const urlFichier3D = BUCKET_BASE_URL + sequenceFichiers[index];
+
+    loader.load(urlFichier3D, (gltf) => {
         const clip = gltf.animations[0];
 
         if (clip) {
             const action = mixer.clipAction(clip, avatar);
             action.setLoop(THREE.LoopOnce);
-            action.clampWhenFinished = true;
+            action.clampWhenFinished = true; // Empêche l'avatar de revenir en position T à la fin du mouvement
 
+            // S'il y a déjà une animation en cours, on fait une transition douce (crossfade)
             if (actionPrecedente) {
                 action.play();
                 actionPrecedente.crossFadeTo(action, 0.2, true);
@@ -98,29 +131,40 @@ function appliquerAnimationSequence(index) {
 
             actionPrecedente = action;
 
+            // On nettoie l'ancien écouteur pour éviter que les événements ne se déclenchent en double
             if (ecouteurFinAnimation) {
                 mixer.removeEventListener('finished', ecouteurFinAnimation);
             }
 
+            // On crée le nouvel écouteur qui lancera le mot suivant à la fin du mouvement actuel
             ecouteurFinAnimation = function() {
                 appliquerAnimationSequence(indexLecture + 1);
             };
             
             mixer.addEventListener('finished', ecouteurFinAnimation);
         }
-    }, undefined, (error) => console.error("Erreur chargement animation :", error));
+    }, undefined, (error) => console.error("Erreur chargement animation depuis OCI :", error));
 }
 
-/* COMMUNICATION AVEC LE BACKEND */
+function animate() {
+    requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+    // Le delta time garantit que l'animation tourne à la même vitesse peu importe les FPS de l'écran
+    if (mixer) mixer.update(delta);
+    renderer.render(scene, camera);
+}
+
+   //6. COMMUNICATION API (BACK-END FLASK)
+
 async function executerTraduction() {
     const texte = champTexte.value.trim();
     if (!texte) return;
 
     zoneResultat.innerHTML = "<em>Analyse en cours...</em>";
     mettreAJourIndicateur(-1, 0, ""); 
-    
     document.getElementById('controles-lecture').style.display = 'none';
     
+    // Réinitialisation du lecteur 3D avant de lancer la nouvelle phrase
     if (mixer) {
         mixer.stopAllAction();
         mixer.timeScale = vitesseActuelle;
@@ -134,10 +178,11 @@ async function executerTraduction() {
             body: JSON.stringify({ texte: texte })
         });
 
-        if (!reponse.ok) throw new Error("Erreur serveur");
+        if (!reponse.ok) throw new Error("Erreur serveur API");
 
         const data = await reponse.json();
 
+        // Traitement de l'affichage du résultat
         if (data.mots_traduits && data.mots_traduits.length > 0) {
             const motsFormates = data.mots_traduits.map((mot, i) => {
                 if (data.mots_sans_animation && data.mots_sans_animation.includes(mot)) {
@@ -154,29 +199,29 @@ async function executerTraduction() {
                     ❌ Animation impossible : les signes suivants ne sont pas encore dans la base : 
                     ${listeManquants}
                 </span>`;
-                zoneResultat.innerHTML = html;
-            } else {
-                zoneResultat.innerHTML = html;
-                
-                if (data.fichiers_glb && data.fichiers_glb.length > 0) {
-                    sequenceFichiers = data.fichiers_glb;
-                    sequenceMots = data.mots_traduits.filter(mot => !data.mots_sans_animation.includes(mot));
-                    indexLecture = 0;
-                    
-                    document.getElementById('controles-lecture').style.display = 'flex';
-                }
             }
+            
+            zoneResultat.innerHTML = html;
+                
+            // S'il y a au moins un fichier 3D valide, on prépare la séquence et on affiche le lecteur
+            if (data.fichiers_glb && data.fichiers_glb.length > 0) {
+                sequenceFichiers = data.fichiers_glb;
+                sequenceMots = data.mots_traduits.filter(mot => !data.mots_sans_animation.includes(mot));
+                indexLecture = 0;
+                document.getElementById('controles-lecture').style.display = 'flex';
+            }
+            
         } else {
             zoneResultat.innerHTML = "<em>Aucun mot LSF extrait de cette phrase.</em>";
         }
 
     } catch (error) {
         console.error("Erreur API :", error);
-        zoneResultat.innerHTML = "<span style='color:red;'>Erreur : impossible de joindre le serveur Flask.</span>";
+        zoneResultat.innerHTML = "<span style='color:red;'>Erreur : impossible de joindre le serveur Flask. Vérifiez que les conteneurs tournent.</span>";
     }
 }
 
-/* MISE EN SURBRILLANCE (EFFET KARAOKÉ) */
+// Effet visuel "Karaoké" pour suivre la progression de la phrase
 function mettreAJourIndicateur(index, total, mot) {
     for (let i = 0; i < total; i++) {
         const elementMot = document.getElementById(`mot-${i}`);
@@ -195,20 +240,8 @@ function mettreAJourIndicateur(index, total, mot) {
     }
 }
 
-/* BOUCLE DE RENDU 3D */
-function animate() {
-    requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-    if (mixer) mixer.update(delta);
-    renderer.render(scene, camera);
-}
-
-/* --- SYSTÈME DE DICTIONNAIRE --- */
-const btnDico = document.getElementById('btnDico');
-const zoneDico = document.getElementById('zoneDico');
-const conteneurMots = document.getElementById('conteneurMots');
-const champRecherche = document.getElementById('rechercheDico');
-let motsDictionnaire = [];
+   
+//7. GESTION DU DICTIONNAIRE
 
 function afficherMots(listeDeMots) {
     if (listeDeMots.length > 0) {
@@ -237,15 +270,17 @@ async function chargerDictionnaire() {
     champRecherche.value = ""; 
 
     try {
-        const reponse = await fetch('${API_URL}/api/traduire');
-        if (!reponse.ok) throw new Error("Erreur serveur");
+        // Correction ici : appel de la route dictionnaire (avec des backticks pour la template string)
+        const reponse = await fetch(`${API_URL}/api/dictionnaire`);
+        if (!reponse.ok) throw new Error("Erreur serveur API");
+        
         const data = await reponse.json();
 
         if (data.mots && data.mots.length > 0) {
             motsDictionnaire = data.mots;
             afficherMots(motsDictionnaire);
         } else {
-            conteneurMots.innerHTML = "<em>Aucun mot n'est encore enregistré.</em>";
+            conteneurMots.innerHTML = "<em>Aucun mot n'est encore enregistré dans la base MongoDB.</em>";
         }
     } catch (error) {
         console.error("Erreur dictionnaire :", error);
@@ -262,7 +297,8 @@ champRecherche.addEventListener('input', (e) => {
     afficherMots(motsFiltres);
 });
 
-/* --- TOUS LES ÉCOUTEURS D'ÉVÉNEMENTS --- */
+   //8. ÉCOUTEURS D'ÉVÉNEMENTS (Events Binding)
+
 boutonTraduire.addEventListener('click', executerTraduction);
 
 champTexte.addEventListener('keypress', (e) => {
@@ -274,7 +310,6 @@ champTexte.addEventListener('keypress', (e) => {
 
 btnDico.addEventListener('click', chargerDictionnaire);
 
-const selectVitesse = document.getElementById('selectVitesse');
 if (selectVitesse) {
     selectVitesse.addEventListener('change', (e) => {
         vitesseActuelle = parseFloat(e.target.value);
@@ -284,31 +319,32 @@ if (selectVitesse) {
     });
 }
 
-document.getElementById('btnPlay').addEventListener('click', () => {
+btnPlay.addEventListener('click', () => {
     if (!mixer) return;
     
     if (mixer.timeScale === 0) {
-        mixer.timeScale = vitesseActuelle;
+        mixer.timeScale = vitesseActuelle; // Reprise après pause
     } else if (indexLecture === 0) {
-        mixer.timeScale = vitesseActuelle;
+        mixer.timeScale = vitesseActuelle; // Lancement initial
         actionPrecedente = null; 
         appliquerAnimationSequence(0);
     }
 });
 
-document.getElementById('btnPause').addEventListener('click', () => {
+btnPause.addEventListener('click', () => {
     if (mixer) {
-        mixer.timeScale = 0;
+        mixer.timeScale = 0; // Met l'animation en pause
     }
 });
 
-document.getElementById('btnRestart').addEventListener('click', () => {
+btnRestart.addEventListener('click', () => {
     if (mixer) {
         mixer.timeScale = vitesseActuelle;
         mixer.stopAllAction();
         actionPrecedente = null;
-        appliquerAnimationSequence(0);
+        appliquerAnimationSequence(0); // Relance depuis le premier mot
     }
 });
 
+// Lancement automatique de la scène au chargement du script
 initScene();
