@@ -6,11 +6,11 @@ import imageio
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from Perso.MotionBERT.lib.utils.tools import *
-from Perso.MotionBERT.lib.utils.learning import *
-from Perso.MotionBERT.lib.utils.utils_data import flip_data
-from Perso.MotionBERT.lib.data.dataset_wild import WildDetDataset
-from Perso.MotionBERT.lib.utils.vismo import render_and_save
+from ..MotionBERT.lib.utils.tools import *
+from ..MotionBERT.lib.utils.learning import *
+from ..MotionBERT.lib.utils.utils_data import flip_data
+from ..MotionBERT.lib.data.dataset_wild import WildDetDataset
+from ..MotionBERT.lib.utils.vismo import render_and_save
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument('-v', '--vid_path', type=str, help='video path')
     parser.add_argument('-o', '--out_path', type=str, help='output path')
     parser.add_argument('--pixel', action='store_true', help='align with pixle coordinates')
-    parser.add_argument('--focus', type=int, default=None, help='target person id')
+    parser.add_argument('--focus', type=int, default=None, help='target .n id')
     parser.add_argument('--clip_len', type=int, default=243, help='clip length for network input')
     opts = parser.parse_args()
     return opts

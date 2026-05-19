@@ -17,14 +17,14 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from Perso.MotionBERT.lib.utils.tools import *
-from Perso.MotionBERT.lib.utils.learning import *
-from Perso.MotionBERT.lib.utils.utils_data import flip_data
-from Perso.MotionBERT.lib.data.dataset_motion_2d import PoseTrackDataset2D, InstaVDataset2D
-from Perso.MotionBERT.lib.data.dataset_motion_3d import MotionDataset3D
-from Perso.MotionBERT.lib.data.augmentation import Augmenter2D
-from Perso.MotionBERT.lib.data.datareader_h36m import DataReaderH36M  
-from Perso.MotionBERT.lib.model.loss import *
+from ..MotionBERT.lib.utils.tools import *
+from ..MotionBERT.lib.utils.learning import *
+from ..MotionBERT.lib.utils.utils_data import flip_data
+from ..MotionBERT.lib.data.dataset_motion_2d import PoseTrackDataset2D, InstaVDataset2D
+from ..MotionBERT.lib.data.dataset_motion_3d import MotionDataset3D
+from ..MotionBERT.lib.data.augmentation import Augmenter2D
+from ..MotionBERT.lib.data.datareader_h36m import DataReaderH36M  
+from ..MotionBERT.lib.model.loss import *
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -364,7 +364,7 @@ def train_with_config(args, opts):
             # Save checkpoints
             chk_path = os.path.join(opts.checkpoint, 'epoch_{}.bin'.format(epoch))
             chk_path_latest = os.path.join(opts.checkpoint, 'latest_epoch.bin')
-            chk_path_best = os.path.join(opts.checkpoint, 'best_epoch.bin'.format(epoch))
+            chk_path_best = os.path.join(opts.checkpoint, 'best_epoch.bin')
             
             save_checkpoint(chk_path_latest, epoch, lr, optimizer, model_pos, min_loss)
             if (epoch + 1) % args.checkpoint_frequency == 0:

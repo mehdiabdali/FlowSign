@@ -14,15 +14,15 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from Perso.MotionBERT.lib.utils.tools import *
-from Perso.MotionBERT.lib.utils.learning import *
-from Perso.MotionBERT.lib.utils.utils_data import flip_data
-from Perso.MotionBERT.lib.utils.utils_mesh import flip_thetas_batch
-from Perso.MotionBERT.lib.data.dataset_wild import WildDetDataset
+from ..MotionBERT.lib.utils.tools import *
+from ..MotionBERT.lib.utils.learning import *
+from ..MotionBERT.lib.utils.utils_data import flip_data
+from ..MotionBERT.lib.utils.utils_mesh import flip_thetas_batch
+from ..MotionBERT.lib.data.dataset_wild import WildDetDataset
 # from lib.model.loss import *
-from Perso.MotionBERT.lib.model.model_mesh import MeshRegressor
-from Perso.MotionBERT.lib.utils.vismo import render_and_save, motion2video_mesh
-from Perso.MotionBERT.lib.utils.utils_smpl import *
+from ..MotionBERT.lib.model.model_mesh import MeshRegressor
+from ..MotionBERT.lib.utils.vismo import render_and_save, motion2video_mesh
+from ..MotionBERT.lib.utils.utils_smpl import *
 from scipy.optimize import least_squares
 
 def parse_args():
@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('-o', '--out_path', type=str, help='output path')
     parser.add_argument('--ref_3d_motion_path', type=str, default=None, help='3D motion path')
     parser.add_argument('--pixel', action='store_true', help='align with pixle coordinates')
-    parser.add_argument('--focus', type=int, default=None, help='target person id')
+    parser.add_argument('--focus', type=int, default=None, help='target .n id')
     parser.add_argument('--clip_len', type=int, default=243, help='clip length for network input')
     opts = parser.parse_args()
     return opts

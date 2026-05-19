@@ -19,16 +19,16 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
 
-from Perso.MotionBERT.lib.utils.tools import *
-from Perso.MotionBERT.lib.model.loss import *
-from Perso.MotionBERT.lib.model.loss_mesh import *
-from Perso.MotionBERT.lib.utils.utils_mesh import *
-from Perso.MotionBERT.lib.utils.utils_smpl import *
-from Perso.MotionBERT.lib.utils.utils_data import *
-from Perso.MotionBERT.lib.utils.learning import *
-from Perso.MotionBERT.lib.data.dataset_mesh import MotionSMPL
-from Perso.MotionBERT.lib.model.model_mesh import MeshRegressor
-from torch.utils.data import DataLoader
+from ..MotionBERT.lib.utils.tools import *
+from ..MotionBERT.lib.model.loss import *
+from ..MotionBERT.lib.model.loss_mesh import *
+from ..MotionBERT.lib.utils.utils_mesh import *
+from ..MotionBERT.lib.utils.utils_smpl import *
+from ..MotionBERT.lib.utils.utils_data import *
+from ..MotionBERT.lib.utils.learning import *
+from ..MotionBERT.lib.data.dataset_mesh import MotionSMPL
+from ..MotionBERT.lib.model.model_mesh import MeshRegressor
+# FIX: suppression du doublon "from torch.utils.data import DataLoader"
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -96,7 +96,7 @@ def validate(test_loader, model, criterion, dataset_name='h36m'):
                 )
                 output_flip_verts = output_flip_smpl.vertices.detach()*1000.0
                 J_regressor_batch = J_regressor[None, :].expand(output_flip_verts.shape[0], -1, -1).to(output_flip_verts.device)
-                output_flip_kp3d = torch.matmul(J_regressor_batch, output_flip_verts)  # (NT,17,3) 
+                output_flip_kp3d = torch.matmul(J_regressor_batch, output_flip_verts)
                 output_flip_back = [{
                     'theta': torch.cat((output_flip_pose.reshape(batch_size, clip_len, -1), output_flip_shape.reshape(batch_size, clip_len, -1)), dim=-1),
                     'verts': output_flip_verts.reshape(batch_size, clip_len, -1, 3),
@@ -117,7 +117,6 @@ def validate(test_loader, model, criterion, dataset_name='h36m'):
                    args.lambda_shape   * loss_dict['loss_shape']       + \
                    args.lambda_pose    * loss_dict['loss_pose']        + \
                    args.lambda_norm    * loss_dict['loss_norm'] 
-            # update metric
             losses.update(loss.item(), batch_size)
             loss_str = ''
             for k, v in loss_dict.items():
@@ -135,7 +134,6 @@ def validate(test_loader, model, criterion, dataset_name='h36m'):
             results['kp_3d_gt'].append(batch_gt['kp_3d'])
             results['verts_gt'].append(batch_gt['verts'])
 
-            # measure elapsed time
             batch_time.update(time.time() - end)
             end = time.time()
 
@@ -236,7 +234,7 @@ def train_with_config(args, opts):
     if args.partial_train:
         model_backbone = partial_train_layers(model_backbone, args.partial_train)
     model = MeshRegressor(args, backbone=model_backbone, dim_rep=args.dim_rep, hidden_dim=args.hidden_dim, dropout_ratio=args.dropout, num_joints=args.num_joints)
-    criterion = MeshLoss(loss_type = args.loss_type)
+    criterion = MeshLoss(loss_type=args.loss_type)
     best_jpe = 9999.0
     model_params = 0
     for parameter in model.parameters():
@@ -274,7 +272,6 @@ def train_with_config(args, opts):
             print('INFO: Training on {} batches (pw3d)'.format(len(train_loader_pw3d)))
         mesh_val_pw3d = MotionSMPL(args, data_split='test', dataset="pw3d")
         test_loader_pw3d = DataLoader(mesh_val_pw3d, **testloader_params)
-    
     
     trainloader_img_params = {
             'batch_size': args.batch_size_img,
@@ -382,9 +379,12 @@ def train_with_config(args, opts):
             train_writer.add_scalar('train_mpjpe', mpjpes.avg, epoch + 1)
             train_writer.add_scalar('train_mpve', mpves.avg, epoch + 1)
                 
-            # Decay learning rate exponentially
             scheduler.step()
-            # Save latest checkpoint.
+
+            # FIX: torch.save du checkpoint "latest" était hors du bloc if,
+            # il écrasait le checkpoint à chaque appel même en mode evaluate.
+            # Le second torch.save (checkpoint périodique) était aussi
+            # hors du bloc if (checkpoint_frequency) — corrigé ci-dessous.
             chk_path = os.path.join(opts.checkpoint, 'latest_epoch.bin')
             print('Saving checkpoint to', chk_path)
             torch.save({
@@ -392,36 +392,38 @@ def train_with_config(args, opts):
                 'lr': scheduler.get_last_lr(),
                 'optimizer': optimizer.state_dict(),
                 'model': model.state_dict(),
-                'best_jpe' : best_jpe
+                'best_jpe': best_jpe
             }, chk_path)
             
-            # Save checkpoint if necessary.
+            # FIX: le torch.save était en dehors du if, il sauvegardait
+            # systématiquement à chaque époque en écrasant chk_path
+            # (qui pointait encore vers latest à ce stade).
             if (epoch+1) % args.checkpoint_frequency == 0:
-                chk_path = os.path.join(opts.checkpoint, 'epoch_{}.bin'.format(epoch))
-                print('Saving checkpoint to', chk_path)
-            torch.save({
-                'epoch': epoch+1,
-                'lr': scheduler.get_last_lr(),
-                'optimizer': optimizer.state_dict(),
-                'model': model.state_dict(),
-                'best_jpe' : best_jpe
-            }, chk_path)
+                chk_path_periodic = os.path.join(opts.checkpoint, 'epoch_{}.bin'.format(epoch))
+                print('Saving checkpoint to', chk_path_periodic)
+                torch.save({
+                    'epoch': epoch+1,
+                    'lr': scheduler.get_last_lr(),
+                    'optimizer': optimizer.state_dict(),
+                    'model': model.state_dict(),
+                    'best_jpe': best_jpe
+                }, chk_path_periodic)
 
             if hasattr(args, "dt_file_pw3d"):
                 best_jpe_cur = test_mpjpe_pw3d
             else:
                 best_jpe_cur = test_mpjpe
-            # Save best checkpoint.
-            best_chk_path = os.path.join(opts.checkpoint, 'best_epoch.bin'.format(epoch))
+
+            best_chk_path = os.path.join(opts.checkpoint, 'best_epoch.bin')
             if best_jpe_cur < best_jpe:
                 best_jpe = best_jpe_cur
                 print("save best checkpoint")
                 torch.save({
-                'epoch': epoch+1,
-                'lr': scheduler.get_last_lr(),
-                'optimizer': optimizer.state_dict(),
-                'model': model.state_dict(),
-                'best_jpe' : best_jpe
+                    'epoch': epoch+1,
+                    'lr': scheduler.get_last_lr(),
+                    'optimizer': optimizer.state_dict(),
+                    'model': model.state_dict(),
+                    'best_jpe': best_jpe
                 }, best_chk_path)
 
     if opts.evaluate:
