@@ -16,13 +16,13 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 
-from Perso.MotionBERT.lib.utils.tools import *
-from Perso.MotionBERT.lib.utils.learning import *
-from Perso.MotionBERT.lib.model.loss import *
-from Perso.MotionBERT.lib.data.dataset_action import NTURGBD, NTURGBD1Shot
-from Perso.MotionBERT.lib.model.model_action import ActionNet
+from ..MotionBERT.lib.utils.tools import *
+from ..MotionBERT.lib.utils.learning import *
+from ..MotionBERT.lib.model.loss import *
+from ..MotionBERT.lib.data.dataset_action import NTURGBD, NTURGBD1Shot
+from ..MotionBERT.lib.model.model_action import ActionNet
 
-from Perso.MotionBERT.lib.model.loss_supcon import SupConLoss
+from ..MotionBERT.lib.model.loss_supcon import SupConLoss
 from pytorch_metric_learning import samplers
 
 random.seed(0)
