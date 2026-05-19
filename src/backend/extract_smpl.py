@@ -20,8 +20,8 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 sys.path.append(os.path.abspath("MotionBERT"))
-from lib.utils.tools import get_config
-from lib.model.DSTformer import DSTformer
+from MotionBERT.lib.utils.tools import get_config
+from MotionBERT.lib.model.DSTformer import DSTformer
 
 # ── Joints H36M (après conversion mediapipe_to_h36m) ─────────────────────────
 #   0=pelvis  7=spine  8=thorax  9=neck  10=head
