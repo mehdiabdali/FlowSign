@@ -3,3 +3,4 @@
 *.pyd
 bdd_lsf.json
 .env
+.key
