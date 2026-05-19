@@ -1,5 +1,4 @@
 /*
-Auteur : Mehdi ABD ALI
 Gère tout ce qui touche à la 3D et à Three.js.
 L'interface HTML n'a pas à savoir comment le moteur 3D fonctionne à l'intérieur.
 */

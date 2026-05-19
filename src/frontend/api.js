@@ -1,5 +1,4 @@
 /*
-Auteur : Mehdi ABD ALI
 Gère la communication avec le backend Flask.
 Cela évite de tout mélanger et rend le code plus propre.
 */

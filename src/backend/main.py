@@ -1,5 +1,4 @@
 """
-auteur: Mehdi ABD ALI
 Serveur backend principal utilisant Flask. 
 Expose les routes de l'API, fait le lien entre la traduction linguistique et la base de données.
 """

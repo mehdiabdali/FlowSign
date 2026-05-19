@@ -1,5 +1,4 @@
 /*
-Auteur : Mehdi ABD ALI
 Script principal qui fait le lien entre l'API, le moteur 3D et le HTML.
 C'est le chef d'orchestre de la page web.
 */

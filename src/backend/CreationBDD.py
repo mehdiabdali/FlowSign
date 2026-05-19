@@ -1,5 +1,4 @@
 """
-auteur: Mehdi ABD ALI
 Parcourt le dossier animation dans le bucket OCI et crée un fichier json avec le chemin de chaque signe 
 et son lemme afin d'automatiser la création de la base de données.
 """

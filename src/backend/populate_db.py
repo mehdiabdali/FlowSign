@@ -1,5 +1,4 @@
 """
-auteur: Mehdi ABD ALI
 Lit le fichier JSON généré et met à jour la base de données MongoDB.
 Utilise la méthode upsert pour éviter les doublons lors des mises à jour.
 """

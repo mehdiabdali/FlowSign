@@ -1,5 +1,4 @@
 """
-auteur: Mehdi ABD ALI
 Moteur linguistique de l'application. Utilise la librairie spaCy pour analyser 
 une phrase en français et la restructurer selon la grammaire LSF.
 """
