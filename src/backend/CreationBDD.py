@@ -6,8 +6,6 @@ et son lemme afin d'automatiser la création de la bdd
 
 
 
-
-
 import os
 import json
 from dotenv import load_dotenv
