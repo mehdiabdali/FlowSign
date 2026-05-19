@@ -1,3 +1,9 @@
+"""
+auteur: Mehdi ABD ALI
+Lit le fichier JSON généré et met à jour la base de données MongoDB.
+Utilise la méthode upsert pour éviter les doublons lors des mises à jour.
+"""
+
 import json
 import os
 from dotenv import load_dotenv
@@ -14,7 +20,7 @@ FICHIER_JSON = os.getenv("FICHIER_JSON")
 
 def remplir_base_depuis_json(chemin_fichier_json):
     try:
-        # Utilisation des variables globales
+        # Initialisation de la connexion à la base de données
         client = MongoClient(MONGO_URI)
         db = client[DB_NAME]
         collection = db[COLLECTION_NAME]
@@ -23,6 +29,8 @@ def remplir_base_depuis_json(chemin_fichier_json):
         return
 
     print(f"Lecture du fichier : {chemin_fichier_json}...")
+    
+    # Sécurisation de la lecture du fichier
     try:
         with open(chemin_fichier_json, 'r', encoding='utf-8') as fichier:
             donnees_a_inserer = json.load(fichier)
@@ -39,16 +47,17 @@ def remplir_base_depuis_json(chemin_fichier_json):
 
     compteur = 0
     for doc in donnees_a_inserer:
+        # L'upsert met à jour le document s'il existe, ou le crée s'il n'existe pas
         collection.update_one(
             {"lemme": doc["lemme"]},
             {"$set": doc},
             upsert=True
         )
+        # Création d'un index pour accélérer les futures recherches par mot
         collection.create_index("lemme", unique=True)
         compteur += 1
 
     print(f"Succès ! {compteur} signes mis à jour dans MongoDB.")
 
 if __name__ == "__main__":
-    # On passe la variable configurée en haut
     remplir_base_depuis_json(FICHIER_JSON)

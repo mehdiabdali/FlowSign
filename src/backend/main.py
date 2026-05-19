@@ -1,3 +1,9 @@
+"""
+auteur: Mehdi ABD ALI
+Serveur backend principal utilisant Flask. 
+Expose les routes de l'API, fait le lien entre la traduction linguistique et la base de données.
+"""
+
 import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -7,25 +13,25 @@ from trad import traduire_vers_lsf
 from CreationBDD import synchroniser_bdd_depuis_bucket
 from populate_db import remplir_base_depuis_json
 
-# 1. Chargement des variables d'environnement EN PREMIER
+# Chargement impératif des variables d'environnement avant toute configuration
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# 2. Connexion à MongoDB et lecture des variables (après load_dotenv)
+# Connexion à MongoDB
 client = MongoClient(os.getenv("MONGO_URI"))
 db = client['flowsign_db']
 collection = db['signes']
+
 DOSSIER_ANIMATIONS = os.getenv("BUCKET_BASE_URL")
 FICHIER_JSON = os.getenv("FICHIER_JSON")
 
-# 3. Synchro automatique au démarrage (fonctionne avec Gunicorn ET python main.py)
+# Synchronisation automatique de la base au démarrage du conteneur
 print("--- Synchronisation de la base de données ---")
 synchroniser_bdd_depuis_bucket(DOSSIER_ANIMATIONS, FICHIER_JSON)
 remplir_base_depuis_json(FICHIER_JSON)
 print("--- Synchronisation terminée ---")
-
 
 @app.route('/api/traduire', methods=['POST'])
 def api_traduire():
@@ -34,12 +40,13 @@ def api_traduire():
     if not data or 'texte' not in data:
         return jsonify({"erreur": "Texte manquant"}), 400
 
-    # Traduction de la phrase en mots LSF
+    # 1. Analyse linguistique via spaCy
     mots_lsf = traduire_vers_lsf(data['texte'])
 
-    # Recherche des fichiers 3D correspondants dans la base
+    # 2. Vérification de la disponibilité des modèles 3D dans MongoDB
     chemins_animations = []
     mots_sans_animation = []
+    
     for mot in mots_lsf:
         signe = collection.find_one({"lemme": mot})
         if signe:
@@ -47,6 +54,7 @@ def api_traduire():
         else:
             mots_sans_animation.append(mot)
 
+    # La traduction est complète si aucun mot ne manque dans la base
     traduction_complete = len(mots_sans_animation) == 0
 
     return jsonify({
@@ -56,20 +64,20 @@ def api_traduire():
         "traduction_complete": traduction_complete
     }), 200
 
-
 @app.route('/api/dictionnaire', methods=['GET', 'OPTIONS'])
 def obtenir_dictionnaire():
+    # Gestion des requêtes preflight CORS du navigateur
     if request.method == 'OPTIONS':
         return '', 200
 
     try:
+        # Récupère tous les lemmes de la base de données et les trie par ordre alphabétique
         signes = list(collection.find({}, {"_id": 0, "lemme": 1}).sort("lemme", 1))
         liste_mots = [signe["lemme"] for signe in signes]
         return jsonify({"mots": liste_mots}), 200
     except Exception as e:
         print("Erreur dictionnaire :", e)
         return jsonify({"erreur": "Impossible de charger le dictionnaire"}), 500
-
 
 if __name__ == '__main__':
     print("--- Démarrage de l'API FlowSign ---")
