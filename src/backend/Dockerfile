@@ -11,4 +11,5 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["python", "main.py"]
+# Gunicorn remplace le serveur de dev Flask — 2 workers, adapté pour une petite instance
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "main:app"]

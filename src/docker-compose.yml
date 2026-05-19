@@ -2,24 +2,18 @@ version: '3.8'
 
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0
     container_name: flowsign_db
-    ports:
-      - "27017:27017"
     volumes:
       - mongo_data:/data/db
 
   backend:
     build: ./backend
     container_name: flowsign_api
-    ports:
-      - "5000:5000"
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/flowsign
-      - FICHIER_JSON=/app/bdd_lsf.json
-      - BUCKET_BASE_URL=https://objectstorage.eu-paris-1.oraclecloud.com/n/axkeswuyorub/b/flowsign-frontend/o/
+    env_file:
+      - ./backend/.env
     volumes:
-      - ./frontend/static/animations:/app/static/animations  # monte les .glb dans le backend
+      - ./frontend/static/animations:/app/static/animations
     depends_on:
       - mongodb
 
@@ -28,8 +22,10 @@ services:
     container_name: flowsign_proxy
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/certs:/etc/nginx/certs  # certificat auto-signé monté ici
       - ./frontend:/usr/share/nginx/html
     depends_on:
       - backend
